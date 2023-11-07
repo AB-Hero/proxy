@@ -5,18 +5,18 @@ debug: true
 
 # Uncomment to set banner colors and logo
 # ui:
-  # logo: path/relative/from/static/logo.png
-  # logo_home_url: https://example.com
-  # navbar_background_hex: 0c49b0
-  # navbar_color_hex: fff
-  # navbar_light_buttons: true
-  # disable_printing: true
+# logo: path/relative/from/static/logo.png
+# logo_home_url: https://example.com
+# navbar_background_hex: 0c49b0
+# navbar_color_hex: fff
+# navbar_light_buttons: true
+# disable_printing: true
 
 collections:
-    all: $all
-    pywb:
-        index_paths: ./sample_archive/cdx/
-        archive_paths: ./sample_archive/warcs/
+  all: $all
+  pywb:
+    index_paths: ./sample_archive/cdx/
+    archive_paths: ./sample_archive/warcs/
 
 # Settings for each collection
 use_js_obj_proxy: true
@@ -25,10 +25,9 @@ use_js_obj_proxy: true
 enable_memento: true
 
 # Replay content in an iframe
-framed_replay: true
+framed_replay: false
 
 redirect_to_exact: true
-
 # Uncomment and change to set default locale
 # default_locale: en
 

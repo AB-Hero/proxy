@@ -1,10 +1,16 @@
-version: '3'
+version: "3"
 
 services:
   pywb:
     build: .
     ports:
-        - 8080:8080
+      - 8080:8080
     volumes:
-        - ./config.yaml:/webarchive/config.yaml
-        - ./sample_archive/:/webarchive/sample_archive/
+      - ./config.yaml:/webarchive/config.yaml
+      - ./sample_archive/:/webarchive/sample_archive/
+      - /Users/ram/ABHero/webarchive-data/:/webarchive
+    environment:
+      - WARC_PATH=/webarchive/sample_archive/
+      - CONFIG_FILE=/webarchive/config.yaml
+      - INIT_COLLECTION=my-web-archive
+    command: wayback --record --live

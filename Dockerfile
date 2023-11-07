@@ -30,5 +30,6 @@ VOLUME /webarchive
 EXPOSE 8080
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["uwsgi", "/uwsgi/uwsgi.ini"]
+CMD ["wayback", "--record", "--live"]
+
 
