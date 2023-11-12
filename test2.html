@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Floating UI Tutorial</title>
+    <style>
+      .tooltip {
+        width: max-content;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #222;
+        color: white;
+        font-weight: bold;
+        padding: 5px;
+        border-radius: 4px;
+        font-size: 90%;
+      }
+      .arrowABHero {
+        position: absolute;
+        background: #222;
+        width: 8px;
+        height: 8px;
+        transform: rotate(45deg);
+      }
+    </style>
+    <script type="module">
+      import {
+        computePosition,
+        flip,
+        shift,
+        offset,
+        arrow,
+      } from "https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.5.3/+esm";
+
+      window.addEventListener("DOMContentLoaded", (event) => {
+        const button = document.querySelector("#button");
+
+        // Create tooltip element
+        const tooltip = document.createElement("div");
+        tooltip.className = "tooltip";
+        tooltip.textContent = "My tooltip with more content";
+        document.body.appendChild(tooltip);
+
+        // Create arrow element
+        const arrowElement = document.createElement("div");
+        arrowElement.className = "arrowABHero";
+        tooltip.appendChild(arrowElement);
+
+        computePosition(button, tooltip, {
+          placement: "top",
+          middleware: [
+            offset(6),
+            flip(),
+            shift({ padding: 5 }),
+            arrow(arrowElement),
+          ],
+        }).then(({ x, y, placement, middlewareData }) => {
+          Object.assign(tooltip.style, {
+            left: `${x}px`,
+            top: `${y}px`,
+          });
+
+          // Accessing the data
+          const { x: arrowX, y: arrowY } = middlewareData.arrow;
+
+          const staticSide = {
+            top: "bottom",
+            right: "left",
+            bottom: "top",
+            left: "right",
+          }[placement.split("-")[0]];
+
+          Object.assign(arrowElement.style, {
+            left: arrowX != null ? `${arrowX}px` : "",
+            top: arrowY != null ? `${arrowY}px` : "",
+            right: "",
+            bottom: "",
+            [staticSide]: "-4px",
+          });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <button id="button" aria-describedby="tooltip">My button</button>
+  </body>
+</html>
