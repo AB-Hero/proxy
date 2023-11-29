@@ -173,6 +173,7 @@ class HTMLRewriterMixin(StreamingRewriter):
     SRCSET_REGEX = re.compile('\s*(\S*\s+[\d\.]+[wx]),|(?:\s*,(?:\s+|(?=https?:)))')
 
     def _rewrite_srcset(self, value, mod=''):
+        return ''
         if not value:
             return ''
 
