@@ -1,25 +1,20 @@
-!<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="dark" style="color-scheme: dark">
   <head>
     <style>
       .tooltip {
-        width: max-content;
         position: absolute;
         top: 0;
         left: 0;
-        background: #222;
+        background: #5c5c5c;
         color: white;
         font-weight: bold;
-        padding: 5px;
         border-radius: 4px;
-        font-size: 90%;
-      }
-      .arrowABHero {
-        position: absolute;
-        background: #222;
-        width: 8px;
-        height: 8px;
-        transform: rotate(45deg);
+        font-size: 18px;
+        height: 28px;
+        width: 30px;
+        text-align: center;
+        cursor: pointer;
       }
     </style>
     <script type="module">
@@ -28,173 +23,90 @@
         flip,
         shift,
         offset,
-        arrow,
       } from "https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.5.3/+esm";
 
-      const suggestions = [
-        {
-          suggestion: "Highlight the brand logo more effectively",
-          Type: "Graphics",
-          Current: "BuzzBonus (small size and minimal emphasis)",
-          New: "Increase size of 'BuzzBonus' logo and change its color to stand out more against the background",
-        },
-        {
-          suggestion: "Make the main headline more compelling",
-          Type: "Text",
-          Current: "Supercharge Your Online Presence",
-          New: "Boost Your Online Presence with a Click",
-        },
-        {
-          suggestion: "Clarify the subheadline",
-          Type: "Text",
-          Current:
-            "With One AI Widget for social sharing, collecting testimonials, and affiliate marketing",
-          New: "The All-in-One Widget: Social Sharing, Testimonials, Affiliate Marketing",
-        },
-        {
-          suggestion: "Make the CTA button more noticeable",
-          Type: "Graphics",
-          Current: "'Docs' button with a subtle outline",
-          New: "Change 'Docs' button to a solid, contrasting color to make it more noticeable",
-        },
-        {
-          suggestion: "Create urgency for the featured badge",
-          Type: "Text",
-          Current: "'FEATURED ON Product Hunt 58'",
-          New: "'As Seen on Product Hunt - Top 60!'",
-        },
-        {
-          suggestion: "Dynamic change on the login button",
-          Type: "Graphics",
-          Current: "'Login' with a solid blue background",
-          New: "Add an interactive hover effect to the 'Login' button to encourage clicks",
-        },
-        {
-          suggestion: "Alter the product feature list for clarity",
-          Type: "Text",
-          Current:
-            "'One AI Widget for social sharing, collecting testimonials, and affiliate marketing'",
-          New: "'Enhance Engagement: Social Sharing | Collect Testimonials | Grow Affiliates'",
-        },
-        {
-          suggestion: "Optimize the headline for SEO",
-          Type: "Text",
-          Current: "Supercharge Your Online Presence",
-          New: "Elevate Your Brand\u2019s Visibility Online Effortlessly",
-        },
-        {
-          suggestion: "Test a different featured badge design",
-          Type: "Graphics",
-          Current: "Red and triangle-shaped 'FEATURED ON'",
-          New: "Use a star icon with a blue color to highlight the 'FEATURED ON' badge",
-        },
-        {
-          suggestion: "Enhance the navigation bar",
-          Type: "Structure",
-          Current: "The login button is next to 'Docs', equal in style",
-          New: "Differentiate the 'Login' button with a raised look or different shading to signify importance",
-        },
-      ];
-      const elementsWithTooltips = new Set();
-      function createTooltipForTextElement(element, text) {
-        // Create tooltip element
-        if (!elementsWithTooltips.has(element)) {
-          // Add this element to the Set to mark it as having a tooltip
-          elementsWithTooltips.add(element);
-          const tooltip = document.createElement("div");
-          tooltip.className = "tooltip";
-          tooltip.textContent = text;
-          tooltip.style.position = "absolute";
-          tooltip.style.cursor = "pointer";
+      const tooltips = {};
 
-          document.body.appendChild(tooltip);
+      function toggleTooltipState(tooltip, element, suggestion) {
+        if (tooltip.style.background === "rgb(92, 92, 92)") {
+          tooltip.style.background = "#F37B38";
+          element.textContent = suggestion.New;
+        } else {
+          tooltip.style.background = "#5C5C5C";
+          element.textContent = suggestion.Current;
+        }
+        window.parent.postMessage(
+          {
+            type: "tooltipToggled",
+            tooltipNum: suggestion.num,
+          },
+          "*"
+        );
+      }
 
-          // Create arrow element
-          const arrowElement = document.createElement("div");
-          arrowElement.className = "arrow";
-          tooltip.appendChild(arrowElement);
+      function createTooltipForTextElement(element, suggestion, existingCount) {
+        const tooltip = document.createElement("div");
+        tooltip.className = "tooltip";
+        tooltip.textContent = suggestion.num;
+        tooltips[suggestion.num] = [tooltip, element, suggestion];
+        tooltip.style.background = "#5C5C5C";
 
-          computePosition(element, tooltip, {
-            placement: "top",
-            middleware: [
-              offset(6),
-              flip(),
-              shift({ padding: 5 }),
-              arrow({ element: arrowElement }),
-            ],
-          }).then(({ x, y, placement, middlewareData }) => {
-            Object.assign(tooltip.style, {
-              left: `${x}px`,
-              top: `${y}px`,
-            });
+        document.body.appendChild(tooltip);
 
-            // Accessing the data
-            const { x: arrowX, y: arrowY } = middlewareData.arrow;
+        tooltip.addEventListener("click", () => {
+          toggleTooltipState(tooltip, element, suggestion);
+        });
 
-            const staticSide = {
-              top: "bottom",
-              right: "left",
-              bottom: "top",
-              left: "right",
-            }[placement.split("-")[0]];
+        let numOffset = Math.floor(existingCount / 2);
+        let placement = "left";
+        if (existingCount % 2 === 1) {
+          placement = "right";
+          numOffset *= -1;
+        }
 
-            Object.assign(arrowElement.style, {
-              left: arrowX != null ? `${arrowX}px` : "",
-              top: arrowY != null ? `${arrowY}px` : "",
-              right: "",
-              bottom: "",
-              [staticSide]: "-4px",
-            });
+        computePosition(element, tooltip, {
+          placement,
+          middleware: [offset(10, 0), flip(), shift({ padding: 5 })],
+        }).then(({ x, y }) => {
+          Object.assign(tooltip.style, {
+            left: `${x - 35 * numOffset}px`,
+            top: `${y}px`,
           });
-        }
-      }
-
-      // Function to attach tooltips based on suggestions
-      function longestCommonSubsequence(str1, str2) {
-        const dp = Array(str1.length + 1)
-          .fill(null)
-          .map(() => Array(str2.length + 1).fill(0));
-
-        for (let i = 1; i <= str1.length; i++) {
-          for (let j = 1; j <= str2.length; j++) {
-            if (str1[i - 1] === str2[j - 1]) {
-              dp[i][j] = dp[i - 1][j - 1] + 1;
-            } else {
-              dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
-            }
-          }
-        }
-
-        return dp[str1.length][str2.length];
-      }
-
-      function attachTooltips(suggestions) {
-        suggestions.forEach((suggestion) => {
-          if (suggestion.Type === "Text") {
-            const elements = Array.from(
-              document.querySelectorAll("p, span, h1, h2, h3, h4, h5, h6")
-            );
-
-            elements.forEach((element) => {
-              const elementText = element.textContent.trim();
-              const lcsLength = longestCommonSubsequence(
-                elementText,
-                suggestion.Current
-              );
-
-              // Determine the similarity threshold. Here we use 80% of the "Current" text length.
-              const threshold = suggestion.Current.length * 0.8;
-
-              if (lcsLength >= threshold) {
-                // If the similarity is above the threshold, we create a tooltip.
-                createTooltipForTextElement(element, suggestion.suggestion);
-              }
-            });
-          }
         });
       }
+
+      const xpathTooltipsCreated = {};
+      function attachTooltip(suggestion) {
+        const element = document.evaluate(
+          suggestion.xpath,
+          document,
+          null,
+          XPathResult.FIRST_ORDERED_NODE_TYPE,
+          null
+        ).singleNodeValue;
+        if (element) {
+          let existingCount = xpathTooltipsCreated[suggestion.xpath] || 0;
+          createTooltipForTextElement(element, suggestion, existingCount);
+          xpathTooltipsCreated[suggestion.xpath] = existingCount + 1;
+        }
+      }
+
       window.addEventListener("message", (event) => {
-        attachTooltips(suggestions);
+        try {
+          const eventJson = JSON.parse(event.data);
+          if (eventJson["ABHeroSuggestion"]) {
+            const suggestion = eventJson["ABHeroSuggestion"];
+            attachTooltip(suggestion);
+          }
+          if (eventJson["ABHeroChange"]) {
+            const num = eventJson["ABHeroChange"]["num"];
+            const tooltipVals = tooltips[num];
+
+            toggleTooltipState(tooltipVals[0], tooltipVals[1], tooltipVals[2]);
+          }
+        } catch (err) {
+          return;
+        }
       });
     </script>
 
