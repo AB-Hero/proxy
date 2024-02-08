@@ -29,7 +29,8 @@ class RewriterApp(object):
     """
     VIDEO_INFO_CONTENT_TYPE = 'application/vnd.youtube-dl_formats+json'
 
-    DEFAULT_CSP = "default-src 'unsafe-eval' 'unsafe-inline' 'self' data: blob: mediastream: ws: wss: ; script-src * 'unsafe-inline'; form-action 'self'"
+    #DEFAULT_CSP = "default-src 'unsafe-eval' 'unsafe-inline' 'self' data: blob: mediastream: ws: wss:; script-src 'self' https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.5.3/+esm 'unsafe-inline'; form-action 'self'"
+    DEFAULT_CSP = "default-src 'unsafe-eval' 'unsafe-inline' 'self' data: blob: mediastream: ws: wss: ; form-action 'self'"
 
     def __init__(self, framed_replay=False, jinja_env=None, config=None, paths=None):
         """Initialize a new instance of RewriterApp

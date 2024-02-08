@@ -33,8 +33,6 @@
 <style>
   .tooltip {
     position: absolute;
-    top: 0;
-    left: 0;
     background: #5c5c5c;
     color: white;
     font-weight: bold;
@@ -44,34 +42,73 @@
     width: 30px;
     text-align: center;
     cursor: pointer;
+    z-index: 2147483647;
   }
 </style>
 
-<script type="module">
-  import {
-    computePosition,
-    flip,
-    shift,
-    offset,
-  } from "https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.5.3/+esm";
+<script>
+  window.addEventListener("load", (event) => {
+    const htmlContent = document.documentElement.outerHTML;
+    console.log("use html: ", htmlContent);
+    setTimeout(() => {
+      window.parent.postMessage(
+        { type: "html", htmlContent: htmlContent },
+        "*"
+      );
+    }, 1000);
+  });
 
   const tooltips = {};
 
-  function toggleTooltipState(tooltip, element, suggestion) {
-    if (tooltip.style.background === "rgb(92, 92, 92)") {
+  function toggleTooltipState(num) {
+    const tooltipVals = tooltips[num];
+    const suggestion = tooltipVals[2];
+    console.log(suggestion);
+    const element = document.evaluate(
+      suggestion.xpath,
+      document,
+      null,
+      XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue;
+    tooltipVals[1] = element;
+    console.log(element);
+    const tooltip = tooltipVals[0];
+    const variant = tooltip.style.background === "rgb(92, 92, 92)";
+    if (variant) {
       tooltip.style.background = "#F37B38";
-      element.textContent = suggestion.New;
+      element.outerHTML = suggestion.New;
     } else {
       tooltip.style.background = "#5C5C5C";
-      element.textContent = suggestion.Current;
+      element.outerHTML = suggestion.Current;
     }
     window.parent.postMessage(
       {
         type: "tooltipToggled",
         tooltipNum: suggestion.num,
+        variant,
       },
       "*"
     );
+  }
+
+  function positionTooltip(element, tooltip, existingCount) {
+    const rect = element.getBoundingClientRect();
+    let numOffset = Math.floor(existingCount / 2);
+    let placement = "left";
+    if (existingCount % 2 === 1) {
+      placement = "right";
+      numOffset *= -1;
+    }
+
+    // Calculate the position based on the element's position and size
+    let left =
+      rect.left + (placement === "left" ? -tooltip.offsetWidth : rect.width);
+    let top = rect.top + window.scrollY;
+
+    // Apply the position with an offset
+    tooltip.style.left = `${left - 35 * numOffset}px`;
+    tooltip.style.top = `${top}px`;
   }
 
   function createTooltipForTextElement(element, suggestion, existingCount) {
@@ -84,25 +121,10 @@
     document.body.appendChild(tooltip);
 
     tooltip.addEventListener("click", () => {
-      toggleTooltipState(tooltip, element, suggestion);
+      toggleTooltipState(suggestion.num);
     });
 
-    let numOffset = Math.floor(existingCount / 2);
-    let placement = "left";
-    if (existingCount % 2 === 1) {
-      placement = "right";
-      numOffset *= -1;
-    }
-
-    computePosition(element, tooltip, {
-      placement,
-      middleware: [offset(10, 0), flip(), shift({ padding: 5 })],
-    }).then(({ x, y }) => {
-      Object.assign(tooltip.style, {
-        left: `${x - 35 * numOffset}px`,
-        top: `${y}px`,
-      });
-    });
+    positionTooltip(element, tooltip, existingCount);
   }
 
   const xpathTooltipsCreated = {};
@@ -114,6 +136,7 @@
       XPathResult.FIRST_ORDERED_NODE_TYPE,
       null
     ).singleNodeValue;
+    console.log(suggestion);
     if (element) {
       let existingCount = xpathTooltipsCreated[suggestion.xpath] || 0;
       createTooltipForTextElement(element, suggestion, existingCount);
@@ -122,18 +145,18 @@
   }
 
   window.addEventListener("message", (event) => {
-    console.log(event.data);
+    //console.log(event.data);
     try {
       const eventJson = JSON.parse(event.data);
       if (eventJson["ABHeroSuggestion"]) {
         const suggestion = eventJson["ABHeroSuggestion"];
+        console.log(suggestion);
         attachTooltip(suggestion);
       }
       if (eventJson["ABHeroChange"]) {
         const num = eventJson["ABHeroChange"]["num"];
-        const tooltipVals = tooltips[num];
 
-        toggleTooltipState(tooltipVals[0], tooltipVals[1], tooltipVals[2]);
+        toggleTooltipState(num);
       }
     } catch (err) {
       return;
